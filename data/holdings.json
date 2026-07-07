@@ -1,0 +1,501 @@
+{
+ "asOf": "2026-07-07",
+ "source": "Invesco/FMP holdings 2026-07-07",
+ "holdings": [
+  {
+   "ticker": "MU",
+   "name": "Micron Technology",
+   "shares": 2353951
+  },
+  {
+   "ticker": "NVDA",
+   "name": "NVIDIA",
+   "shares": 8536529
+  },
+  {
+   "ticker": "AVGO",
+   "name": "Broadcom",
+   "shares": 3614870
+  },
+  {
+   "ticker": "GOOGL",
+   "name": "Alphabet A",
+   "shares": 2694413
+  },
+  {
+   "ticker": "JNJ",
+   "name": "Johnson & Johnson",
+   "shares": 3642713
+  },
+  {
+   "ticker": "AMD",
+   "name": "Advanced Micro Devices",
+   "shares": 1710054
+  },
+  {
+   "ticker": "LRCX",
+   "name": "Lam Research",
+   "shares": 2368704
+  },
+  {
+   "ticker": "GOOG",
+   "name": "Alphabet C",
+   "shares": 2158778
+  },
+  {
+   "ticker": "INTC",
+   "name": "Intel",
+   "shares": 5487946
+  },
+  {
+   "ticker": "CAT",
+   "name": "Caterpillar",
+   "shares": 633441
+  },
+  {
+   "ticker": "XOM",
+   "name": "ExxonMobil",
+   "shares": 4077066
+  },
+  {
+   "ticker": "SNDK",
+   "name": "Sandisk",
+   "shares": 309343
+  },
+  {
+   "ticker": "AMAT",
+   "name": "Applied Materials",
+   "shares": 839246
+  },
+  {
+   "ticker": "GE",
+   "name": "GE Aerospace",
+   "shares": 1076255
+  },
+  {
+   "ticker": "CSCO",
+   "name": "Cisco Systems",
+   "shares": 3572905
+  },
+  {
+   "ticker": "WDC",
+   "name": "Western Digital",
+   "shares": 709071
+  },
+  {
+   "ticker": "STX",
+   "name": "Seagate Technology",
+   "shares": 455635
+  },
+  {
+   "ticker": "KLAC",
+   "name": "KLA Corp",
+   "shares": 1541000
+  },
+  {
+   "ticker": "RTX",
+   "name": "RTX Corp",
+   "shares": 1656039
+  },
+  {
+   "ticker": "GEV",
+   "name": "GE Vernova",
+   "shares": 292767
+  },
+  {
+   "ticker": "APH",
+   "name": "Amphenol",
+   "shares": 1860406
+  },
+  {
+   "ticker": "GS",
+   "name": "Goldman Sachs",
+   "shares": 296419
+  },
+  {
+   "ticker": "PM",
+   "name": "Philip Morris Intl",
+   "shares": 1554902
+  },
+  {
+   "ticker": "KO",
+   "name": "Coca-Cola",
+   "shares": 3264462
+  },
+  {
+   "ticker": "PLTR",
+   "name": "Palantir",
+   "shares": 1890334
+  },
+  {
+   "ticker": "C",
+   "name": "Citigroup",
+   "shares": 1646341
+  },
+  {
+   "ticker": "GLW",
+   "name": "Corning",
+   "shares": 1118624
+  },
+  {
+   "ticker": "MS",
+   "name": "Morgan Stanley",
+   "shares": 987753
+  },
+  {
+   "ticker": "NEM",
+   "name": "Newmont",
+   "shares": 2125586
+  },
+  {
+   "ticker": "WELL",
+   "name": "Welltower",
+   "shares": 790329
+  },
+  {
+   "ticker": "GILD",
+   "name": "Gilead Sciences",
+   "shares": 1308807
+  },
+  {
+   "ticker": "ADI",
+   "name": "Analog Devices",
+   "shares": 420204
+  },
+  {
+   "ticker": "SCHW",
+   "name": "Charles Schwab",
+   "shares": 1344574
+  },
+  {
+   "ticker": "HWM",
+   "name": "Howmet Aerospace",
+   "shares": 454008
+  },
+  {
+   "ticker": "BNY",
+   "name": "BNY Mellon",
+   "shares": 766494
+  },
+  {
+   "ticker": "CMI",
+   "name": "Cummins",
+   "shares": 167312
+  },
+  {
+   "ticker": "LMT",
+   "name": "Lockheed Martin",
+   "shares": 198886
+  },
+  {
+   "ticker": "MO",
+   "name": "Altria",
+   "shares": 1451098
+  },
+  {
+   "ticker": "MNST",
+   "name": "Monster Beverage",
+   "shares": 1078016
+  },
+  {
+   "ticker": "GD",
+   "name": "General Dynamics",
+   "shares": 279019
+  },
+  {
+   "ticker": "MCK",
+   "name": "McKesson",
+   "shares": 130835
+  },
+  {
+   "ticker": "CIEN",
+   "name": "Ciena",
+   "shares": 231067
+  },
+  {
+   "ticker": "PWR",
+   "name": "Quanta Services",
+   "shares": 144228
+  },
+  {
+   "ticker": "FIX",
+   "name": "Comfort Systems",
+   "shares": 55246
+  },
+  {
+   "ticker": "PH",
+   "name": "Parker-Hannifin",
+   "shares": 99066
+  },
+  {
+   "ticker": "JCI",
+   "name": "Johnson Controls",
+   "shares": 662406
+  },
+  {
+   "ticker": "LHX",
+   "name": "L3Harris",
+   "shares": 282411
+  },
+  {
+   "ticker": "CAH",
+   "name": "Cardinal Health",
+   "shares": 352373
+  },
+  {
+   "ticker": "FCX",
+   "name": "Freeport-McMoRan",
+   "shares": 1329779
+  },
+  {
+   "ticker": "GM",
+   "name": "General Motors",
+   "shares": 1042998
+  },
+  {
+   "ticker": "HOOD",
+   "name": "Robinhood",
+   "shares": 671467
+  },
+  {
+   "ticker": "CME",
+   "name": "CME Group",
+   "shares": 315782
+  },
+  {
+   "ticker": "NOC",
+   "name": "Northrop Grumman",
+   "shares": 131120
+  },
+  {
+   "ticker": "HCA",
+   "name": "HCA Healthcare",
+   "shares": 169790
+  },
+  {
+   "ticker": "AEP",
+   "name": "American Electric Power",
+   "shares": 497749
+  },
+  {
+   "ticker": "WMB",
+   "name": "Williams Cos",
+   "shares": 924104
+  },
+  {
+   "ticker": "COR",
+   "name": "Cencora",
+   "shares": 222369
+  },
+  {
+   "ticker": "TER",
+   "name": "Teradyne",
+   "shares": 172749
+  },
+  {
+   "ticker": "TEL",
+   "name": "TE Connectivity",
+   "shares": 308087
+  },
+  {
+   "ticker": "MPWR",
+   "name": "Monolithic Power",
+   "shares": 43767
+  },
+  {
+   "ticker": "ROK",
+   "name": "Rockwell Automation",
+   "shares": 113621
+  },
+  {
+   "ticker": "F",
+   "name": "Ford Motor",
+   "shares": 3668452
+  },
+  {
+   "ticker": "VTR",
+   "name": "Ventas",
+   "shares": 456994
+  },
+  {
+   "ticker": "ETR",
+   "name": "Entergy",
+   "shares": 350441
+  },
+  {
+   "ticker": "IDXX",
+   "name": "IDEXX Laboratories",
+   "shares": 71176
+  },
+  {
+   "ticker": "EBAY",
+   "name": "eBay",
+   "shares": 345165
+  },
+  {
+   "ticker": "STT",
+   "name": "State Street",
+   "shares": 228102
+  },
+  {
+   "ticker": "DG",
+   "name": "Dollar General",
+   "shares": 325397
+  },
+  {
+   "ticker": "EME",
+   "name": "EMCOR Group",
+   "shares": 43099
+  },
+  {
+   "ticker": "CHRW",
+   "name": "CH Robinson",
+   "shares": 172771
+  },
+  {
+   "ticker": "ADM",
+   "name": "Archer-Daniels-Midland",
+   "shares": 411763
+  },
+  {
+   "ticker": "TPR",
+   "name": "Tapestry",
+   "shares": 216537
+  },
+  {
+   "ticker": "JBL",
+   "name": "Jabil",
+   "shares": 85789
+  },
+  {
+   "ticker": "WEC",
+   "name": "WEC Energy",
+   "shares": 240970
+  },
+  {
+   "ticker": "CNP",
+   "name": "CenterPoint Energy",
+   "shares": 637814
+  },
+  {
+   "ticker": "NTRS",
+   "name": "Northern Trust",
+   "shares": 159284
+  },
+  {
+   "ticker": "CBOE",
+   "name": "Cboe Global Markets",
+   "shares": 98304
+  },
+  {
+   "ticker": "ATO",
+   "name": "Atmos Energy",
+   "shares": 137614
+  },
+  {
+   "ticker": "HSY",
+   "name": "Hershey",
+   "shares": 128551
+  },
+  {
+   "ticker": "EXPD",
+   "name": "Expeditors Intl",
+   "shares": 128097
+  },
+  {
+   "ticker": "FE",
+   "name": "FirstEnergy",
+   "shares": 441867
+  },
+  {
+   "ticker": "NRG",
+   "name": "NRG Energy",
+   "shares": 156157
+  },
+  {
+   "ticker": "DLTR",
+   "name": "Dollar Tree",
+   "shares": 170286
+  },
+  {
+   "ticker": "ULTA",
+   "name": "Ulta Beauty",
+   "shares": 42800
+  },
+  {
+   "ticker": "EVRG",
+   "name": "Evergy",
+   "shares": 222307
+  },
+  {
+   "ticker": "HII",
+   "name": "Huntington Ingalls",
+   "shares": 65178
+  },
+  {
+   "ticker": "NI",
+   "name": "NiSource",
+   "shares": 387107
+  },
+  {
+   "ticker": "L",
+   "name": "Loews",
+   "shares": 145871
+  },
+  {
+   "ticker": "ALB",
+   "name": "Albemarle",
+   "shares": 124201
+  },
+  {
+   "ticker": "BG",
+   "name": "Bunge Global",
+   "shares": 140416
+  },
+  {
+   "ticker": "LDOS",
+   "name": "Leidos",
+   "shares": 114864
+  },
+  {
+   "ticker": "RL",
+   "name": "Ralph Lauren",
+   "shares": 30308
+  },
+  {
+   "ticker": "ROL",
+   "name": "Rollins",
+   "shares": 267694
+  },
+  {
+   "ticker": "HAS",
+   "name": "Hasbro",
+   "shares": 139873
+  },
+  {
+   "ticker": "FOXA",
+   "name": "Fox Corp A",
+   "shares": 193241
+  },
+  {
+   "ticker": "IVZ",
+   "name": "Invesco",
+   "shares": 372043
+  },
+  {
+   "ticker": "TKO",
+   "name": "TKO Group",
+   "shares": 48193
+  },
+  {
+   "ticker": "FOX",
+   "name": "Fox Corp B",
+   "shares": 122255
+  },
+  {
+   "ticker": "LUV",
+   "name": "Southwest Airlines",
+   "shares": 104678
+  }
+ ]
+}

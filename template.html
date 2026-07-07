@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SPMO Drift Monitor — weights since last rebalance</title>
+<style>
+  :root{
+    --bg:#0e1117; --card:#161b22; --card2:#1c2330; --border:#2b3442;
+    --text:#e6edf3; --muted:#8b949e; --accent:#4aa8ff; --accent2:#9d7bff;
+    --up:#3fb950; --down:#f85149; --gold:#d29922;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--text);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    padding:24px; max-width:1180px; margin:0 auto;}
+  h1{font-size:22px; font-weight:700;}
+  h2{font-size:16px; font-weight:600; margin-bottom:12px; color:var(--text);}
+  .sub{color:var(--muted); font-size:13px; margin-top:4px;}
+  .pill{display:inline-block; padding:2px 10px; border-radius:999px; font-size:12px;
+    background:var(--card2); border:1px solid var(--border); color:var(--muted); margin-right:6px;}
+  header{display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:18px;}
+  .grid{display:grid; gap:14px;}
+  .kpis{grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); margin-bottom:18px;}
+  .card{background:var(--card); border:1px solid var(--border); border-radius:10px; padding:16px;}
+  .kpi .v{font-size:22px; font-weight:700; margin-top:2px;}
+  .kpi .l{font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em;}
+  .kpi .d{font-size:12px; color:var(--muted); margin-top:2px;}
+  .up{color:var(--up);} .down{color:var(--down);} .gold{color:var(--gold);}
+  .progress{height:8px; background:var(--card2); border-radius:4px; overflow:hidden; margin-top:8px;}
+  .progress>div{height:100%; background:linear-gradient(90deg,var(--accent),var(--accent2));}
+  section{margin-bottom:22px;}
+  /* movers chips */
+  .movers{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{padding:6px 12px; border-radius:8px; background:var(--card2); border:1px solid var(--border); font-size:13px;}
+  .chip b{font-weight:700;}
+  /* drift bars */
+  .row{display:grid; grid-template-columns:58px 1fr 150px; align-items:center; gap:10px; padding:3px 0;}
+  .row .tk{font-weight:600; font-size:13px;}
+  .barwrap{position:relative; height:22px;}
+  .bar{position:absolute; left:0; height:9px; border-radius:3px;}
+  .b0{top:1px; background:#4a5568;}
+  .b1{bottom:1px; background:linear-gradient(90deg,var(--accent),var(--accent2));}
+  .delta{font-size:12px; text-align:right; white-space:nowrap;}
+  .legend{display:flex; gap:16px; font-size:12px; color:var(--muted); margin-bottom:10px; flex-wrap:wrap;}
+  .sw{display:inline-block; width:14px; height:8px; border-radius:2px; margin-right:5px; vertical-align:middle;}
+  /* table */
+  .toolbar{display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; align-items:center;}
+  input[type=text], input[type=number], select{background:var(--card2); border:1px solid var(--border);
+    color:var(--text); border-radius:8px; padding:8px 10px; font-size:13px;}
+  input[type=text]{width:220px;}
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th,td{padding:7px 10px; text-align:right; border-bottom:1px solid var(--border); white-space:nowrap;}
+  th{color:var(--muted); font-weight:600; cursor:pointer; user-select:none; position:sticky; top:0; background:var(--card);}
+  th:hover{color:var(--text);}
+  td:nth-child(1),th:nth-child(1),td:nth-child(2),th:nth-child(2),td:nth-child(3),th:nth-child(3){text-align:left;}
+  tbody tr:hover{background:var(--card2);}
+  .tablebox{max-height:520px; overflow:auto; border:1px solid var(--border); border-radius:8px;}
+  .tablebox table{border:none;}
+  /* pie builder */
+  .pb-controls{display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:14px;}
+  .pb-controls label{display:block; font-size:12px; color:var(--muted); margin-bottom:5px;}
+  input[type=range]{width:100%;}
+  button{background:var(--accent); color:#04121f; border:none; border-radius:8px;
+    padding:9px 16px; font-size:13px; font-weight:600; cursor:pointer;}
+  button.ghost{background:var(--card2); color:var(--text); border:1px solid var(--border);}
+  button:hover{filter:brightness(1.12);}
+  .note{font-size:12.5px; color:var(--muted); line-height:1.6;}
+  .note b{color:var(--text);}
+  ul.note{padding-left:18px;}
+  .flash{font-size:12px; color:var(--up); margin-left:8px;}
+  footer{color:var(--muted); font-size:12px; border-top:1px solid var(--border); padding-top:14px; margin-top:10px; line-height:1.7;}
+  svg text{fill:var(--muted); font-size:11px;}
+  /* radar */
+  .badge{display:inline-block; padding:2px 9px; border-radius:999px; font-size:11.5px; font-weight:600;}
+  .st-held{background:#12331c; color:var(--up); border:1px solid #1f5c31;}
+  .st-buffer{background:#332a12; color:var(--gold); border:1px solid #6b5518;}
+  .st-atrisk{background:#3a1517; color:var(--down); border:1px solid #6e2226;}
+  .st-enter{background:#0f2a40; color:var(--accent); border:1px solid #1e517d;}
+  .st-challenger{background:#241b3a; color:var(--accent2); border:1px solid #45337a;}
+  .divider td{border-top:2px dashed var(--gold); color:var(--gold); font-size:11.5px;
+    text-align:center !important; padding:4px; background:var(--card);}
+  .fbtn{background:var(--card2); color:var(--muted); border:1px solid var(--border);
+    border-radius:999px; padding:6px 14px; font-size:12.5px; cursor:pointer; font-weight:600;}
+  .fbtn.on{color:var(--text); border-color:var(--accent); background:#0f2a40;}
+  @media (max-width:700px){ .row{grid-template-columns:48px 1fr 90px;} }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>SPMO Drift Monitor</h1>
+    <div class="sub">Invesco S&amp;P 500 Momentum ETF — how constituent weights have evolved since the last rebalance</div>
+  </div>
+  <div style="text-align:right">
+    <span class="pill" id="pill-asof"></span>
+    <span class="pill">Last churn: <b id="pill-rebal"></b></span>
+    <span class="pill">Next churn: <b id="pill-next"></b></span>
+    <div class="progress" style="width:260px; margin-left:auto"><div id="cycle-bar"></div></div>
+    <div class="sub" id="cycle-txt" style="text-align:right"></div>
+  </div>
+</header>
+
+<div class="grid kpis" id="kpis"></div>
+
+<section class="card">
+  <h2>Biggest weight moves since the rebalance</h2>
+  <div class="movers" id="movers"></div>
+</section>
+
+<section class="card">
+  <h2>Weight trajectory — top 8 holdings (weekly)</h2>
+  <div id="evochart"></div>
+</section>
+
+<section class="card">
+  <h2>Then vs now — top 30 by current weight</h2>
+  <div class="legend">
+    <span><span class="sw" style="background:#4a5568"></span>Weight at rebalance</span>
+    <span><span class="sw" style="background:linear-gradient(90deg,var(--accent),var(--accent2))"></span>Weight today</span>
+  </div>
+  <div id="driftbars"></div>
+</section>
+
+<section class="card">
+  <h2>All holdings</h2>
+  <div class="toolbar">
+    <input type="text" id="search" placeholder="Filter by ticker or name…">
+    <span class="note">Click a column header to sort. <b>Mom rank</b> = today's rank across all ~500 S&amp;P names on SPMO's recipe (≤100 makes the cut, ≤120 survives on the buffer); <b>Δ since churn</b> = places climbed (+) or dropped (−) versus its rank on the last churn date.</span>
+  </div>
+  <div class="tablebox">
+    <table id="holdtable">
+      <thead><tr>
+        <th data-k="rank">#</th><th data-k="t">Ticker</th><th data-k="n">Name</th>
+        <th data-k="w0">W @ rebal</th><th data-k="w1">W now</th>
+        <th data-k="dpp">Δ pp</th><th data-k="drel">Δ %</th><th data-k="ret">Price ret</th>
+        <th data-k="rk" title="Momentum rank across all 500 S&P names, SPMO recipe, today">Mom rank</th>
+        <th data-k="drk" title="Places gained/lost vs its rank on the churn date">Δ since churn</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card">
+  <h2>Rebalance radar — if the September churn happened today</h2>
+  <div class="movers" id="radar-summary" style="margin-bottom:12px"></div>
+  <div class="toolbar" id="radar-filters"></div>
+  <div class="tablebox" style="max-height:560px">
+    <table id="radartable">
+      <thead><tr>
+        <th>Rank</th><th>Ticker</th><th>Name</th><th style="text-align:left">Status</th>
+        <th>Δ rank 1w</th><th>Δ rank 1m</th><th>W @ rebal</th><th>W now</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p class="note" style="margin-top:10px" id="radar-note"></p>
+</section>
+
+<section class="card">
+  <h2>IBKR pie builder — replicate today's SPMO</h2>
+  <div class="pb-controls">
+    <div><label>Investment amount (USD)</label>
+      <input type="number" id="pb-amt" value="100000" min="100" step="1000" style="width:100%"></div>
+    <div><label>Number of holdings: <b id="pb-n-label">40</b></label>
+      <input type="range" id="pb-n" min="5" max="99" value="40">
+      <div class="note" id="pb-cov"></div></div>
+    <div><label>Weight basis</label>
+      <select id="pb-mode" style="width:100%">
+        <option value="w1" selected>Current weights (recommended)</option>
+        <option value="w0">Rebalance-day weights</option>
+      </select></div>
+    <div style="align-self:end; display:flex; gap:8px">
+      <button id="pb-copy">Copy CSV</button>
+      <button class="ghost" id="pb-dl">Download CSV</button>
+      <span class="flash" id="pb-flash"></span>
+    </div>
+  </div>
+  <div class="tablebox" style="max-height:380px">
+    <table id="pietable">
+      <thead><tr><th>#</th><th>Ticker</th><th>Name</th><th>Pie weight</th><th>Amount</th><th>Last px</th><th>≈ Shares</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <p class="note" style="margin-top:10px">
+    Weights are the chosen basis renormalised to 100% across the selected names.
+    Shares are indicative (amount ÷ last close); IBKR supports fractional US shares, and will auto-convert GBP→USD if you fund in sterling.
+    CSV columns: <b>Symbol, Weight %, Amount USD, Est shares</b> — paste into a spreadsheet or use with IBKR Basket Trader.
+  </p>
+</section>
+
+<section class="card">
+  <h2>Notes &amp; methodology</h2>
+  <ul class="note">
+    <li><b>How SPMO churns:</b> the S&amp;P 500 Momentum Index rebalances twice a year, effective after the close of the <b>third Friday of March and September</b> (reference data as of end-February / end-August). It scores all S&amp;P 500 names on 12-month risk-adjusted momentum, keeps the top ~100, and weights by market cap × momentum score with a ~10% issuer cap. Between rebalances the fund <b>does not trade</b> — weights drift purely with relative price moves.</li>
+    <li><b>What this page shows:</b> the drift of the current basket since the last effective date. Baseline weights are reconstructed from the fund's current share counts × closing prices on the rebalance date (valid because creations/redemptions scale all positions pro-rata). Cross-checked against the fund's published weights to ~0.1–0.2pp.</li>
+    <li><b>Why you can't buy SPMO directly:</b> as a UK (Ltd/retail) account, IBKR blocks US-domiciled ETFs under the PRIIPs/KID rules. Individual US stocks are unaffected — hence replicating the basket manually.</li>
+    <li><b>Entering mid-cycle:</b> buying at <b>current</b> weights replicates what SPMO actually holds today. Buying at rebalance-day weights would recreate a stale book (and implicitly bet against the momentum that has since played out). Note that at the next churn (~<span id="note-next"></span>) roughly 40–55% of names historically turn over — expect to re-trade the pie then.</li>
+    <li><b>Caveats:</b> prices are split/dividend-adjusted closes (Yahoo Finance); dividend adjustment shifts past weights by at most a few hundredths of a pp. Small residual differences vs Invesco's published weights come from cash/securities-lending lines and pricing-time differences. Names removed mid-cycle (e.g. M&amp;A) would not appear here.</li>
+    <li><b>This is a monitoring tool, not investment advice.</b> Momentum strategies are prone to sharp crashes at market turns.</li>
+  </ul>
+</section>
+
+<footer>
+  Data as of <span id="foot-asof"></span> (holdings: Invesco/FMP share basis; prices: Yahoo Finance; universe: Wikipedia).
+  Updated automatically every weekday after the US close by <a href="https://github.com/harpritdhanoa/spmo-monitor/actions" style="color:var(--accent)">GitHub Actions</a>.
+  Holdings share basis refreshes after each rebalance.
+</footer>
+
+<script>
+/*DATA_START*/
+const DATA = {};
+/*DATA_END*/
+
+const fmt = (x,d=2)=>x.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const sgn = x=>(x>0?'+':'')+fmt(x);
+const cls = x=>x>0?'up':(x<0?'down':'');
+
+// ---- derived ----
+const rows = DATA.rows.map((r,i)=>({...r, rank:i+1, dpp:r.w1-r.w0, drel:r.w0>0?(r.w1/r.w0-1)*100:0}));
+const activeShare = rows.reduce((s,r)=>s+Math.abs(r.dpp),0)/2;
+const top10now = rows.slice(0,10).reduce((s,r)=>s+r.w1,0);
+const top10then = [...rows].sort((a,b)=>b.w0-a.w0).slice(0,10).reduce((s,r)=>s+r.w0,0);
+
+// ---- header / cycle ----
+document.getElementById('pill-asof').innerHTML = 'Data as of <b>'+DATA.asOf+'</b>';
+document.getElementById('pill-rebal').textContent = DATA.rebalDate;
+document.getElementById('pill-next').textContent = DATA.nextRebal;
+document.getElementById('note-next').textContent = DATA.nextRebal;
+document.getElementById('foot-asof').textContent = DATA.asOf;
+(()=>{
+  const a=new Date(DATA.rebalDate), b=new Date(DATA.nextRebal), t=new Date(DATA.asOf);
+  const pct=Math.min(100,Math.max(0,(t-a)/(b-a)*100));
+  document.getElementById('cycle-bar').style.width=pct.toFixed(0)+'%';
+  const daysLeft=Math.round((b-t)/864e5);
+  document.getElementById('cycle-txt').textContent=pct.toFixed(0)+'% through the cycle — '+daysLeft+' days to next churn';
+})();
+
+// ---- KPIs ----
+const kpis=[
+  {l:'Holdings', v:rows.length, d:'equity names in basket'},
+  {l:'Fund return since churn', v:sgn(DATA.fundRet)+'%', d:'basket total, price terms', c:cls(DATA.fundRet)},
+  {l:'Drift (active share)', v:fmt(activeShare,1)+'pp', d:'vs rebalance-day book', c:'gold'},
+  {l:'Top-10 weight', v:fmt(top10now,1)+'%', d:'was '+fmt(top10then,1)+'% at rebalance'},
+  {l:'Largest position', v:rows[0].t+' '+fmt(rows[0].w1,1)+'%', d:'was '+fmt(rows[0].w0,1)+'% at rebalance'},
+];
+document.getElementById('kpis').innerHTML = kpis.map(k=>
+  `<div class="card kpi"><div class="l">${k.l}</div><div class="v ${k.c||''}">${k.v}</div><div class="d">${k.d}</div></div>`).join('');
+
+// ---- movers ----
+const byd=[...rows].sort((a,b)=>b.dpp-a.dpp);
+document.getElementById('movers').innerHTML =
+  byd.slice(0,4).map(r=>`<span class="chip"><b>${r.t}</b> <span class="up">${sgn(r.dpp)}pp</span> (${fmt(r.w0,1)}→${fmt(r.w1,1)}%)</span>`).join('')+
+  byd.slice(-4).reverse().map(r=>`<span class="chip"><b>${r.t}</b> <span class="down">${sgn(r.dpp)}pp</span> (${fmt(r.w0,1)}→${fmt(r.w1,1)}%)</span>`).join('');
+
+// ---- evolution chart (SVG) ----
+(()=>{
+  const top=rows.slice(0,8), dates=DATA.dates;
+  const W=1060,H=330,L=46,R=150,T=14,B=30;
+  const ymax=Math.ceil(Math.max(...top.flatMap(r=>r.s))*1.08);
+  const x=i=>L+(W-L-R)*i/(dates.length-1);
+  const y=v=>T+(H-T-B)*(1-v/ymax);
+  const colors=['#4aa8ff','#9d7bff','#3fb950','#d29922','#f85149','#39c5cf','#ff9bce','#c9d1d9'];
+  let s=`<svg viewBox="0 0 ${W} ${H}" style="width:100%">`;
+  for(let g=0;g<=ymax;g+=ymax>8?2:1){
+    s+=`<line x1="${L}" x2="${W-R}" y1="${y(g)}" y2="${y(g)}" stroke="#242c38"/>`+
+       `<text x="${L-8}" y="${y(g)+4}" text-anchor="end">${g}%</text>`;
+  }
+  dates.forEach((d,i)=>{ if(i%2===0||i===dates.length-1)
+    s+=`<text x="${x(i)}" y="${H-8}" text-anchor="middle">${d.slice(5)}</text>`; });
+  top.forEach((r,k)=>{
+    const pts=r.s.map((v,i)=>`${x(i)},${y(v)}`).join(' ');
+    s+=`<polyline points="${pts}" fill="none" stroke="${colors[k]}" stroke-width="2.2"><title>${r.t}</title></polyline>`;
+    s+=`<circle cx="${x(r.s.length-1)}" cy="${y(r.s[r.s.length-1])}" r="3.4" fill="${colors[k]}"/>`;
+  });
+  // right legend, collision-avoided
+  const lab=top.map((r,k)=>({t:r.t,v:r.s[r.s.length-1],c:colors[k],y:y(r.s[r.s.length-1])}))
+    .sort((a,b)=>a.y-b.y);
+  for(let i=1;i<lab.length;i++) if(lab[i].y-lab[i-1].y<15) lab[i].y=lab[i-1].y+15;
+  lab.forEach(o=>{ s+=`<text x="${W-R+10}" y="${o.y+4}" style="fill:${o.c};font-weight:600">${o.t} ${fmt(o.v,1)}%</text>`; });
+  s+='</svg>';
+  document.getElementById('evochart').innerHTML=s;
+})();
+
+// ---- drift bars ----
+(()=>{
+  const top=rows.slice(0,30);
+  const max=Math.max(...top.map(r=>Math.max(r.w0,r.w1)));
+  document.getElementById('driftbars').innerHTML=top.map(r=>`
+    <div class="row"><div class="tk">${r.t}</div>
+      <div class="barwrap">
+        <div class="bar b0" style="width:${r.w0/max*100}%"></div>
+        <div class="bar b1" style="width:${r.w1/max*100}%"></div>
+      </div>
+      <div class="delta"><span class="${cls(r.dpp)}">${sgn(r.dpp)}pp</span>
+        <span style="color:var(--muted)">${fmt(r.w0,1)}→${fmt(r.w1,1)}%</span></div>
+    </div>`).join('');
+})();
+
+// ---- table ----
+let sortK='w1', sortDir=-1;
+function renderTable(){
+  const q=document.getElementById('search').value.trim().toLowerCase();
+  let d=rows.filter(r=>!q||r.t.toLowerCase().includes(q)||r.n.toLowerCase().includes(q));
+  d.sort((a,b)=>{
+    const va=a[sortK]??(sortDir===1?1e9:-1e9), vb=b[sortK]??(sortDir===1?1e9:-1e9);
+    return (typeof va==='string'? va.localeCompare(vb) : va-vb)*sortDir;
+  });
+  document.querySelector('#holdtable tbody').innerHTML=d.map(r=>`<tr>
+    <td>${r.rank}</td><td><b>${r.t}</b></td><td>${r.n}</td>
+    <td>${fmt(r.w0)}%</td><td>${fmt(r.w1)}%</td>
+    <td class="${cls(r.dpp)}">${sgn(r.dpp)}</td>
+    <td class="${cls(r.drel)}">${sgn(r.drel)}%</td>
+    <td class="${cls(r.ret)}">${sgn(r.ret)}%</td>
+    <td>${r.rk ?? '—'}</td>
+    <td class="${r.drk==null?'':cls(r.drk)}">${r.drk==null?'—':(r.drk>0?'+':'')+r.drk}</td></tr>`).join('');
+}
+document.querySelectorAll('#holdtable th').forEach(th=>th.onclick=()=>{
+  const k=th.dataset.k;
+  if(sortK===k) sortDir*=-1; else {sortK=k; sortDir=(k==='t'||k==='n')?1:-1;}
+  renderTable();
+});
+document.getElementById('search').oninput=renderTable;
+renderTable();
+
+// ---- rebalance radar ----
+/*RADAR_START*/
+const RADAR = null;
+/*RADAR_END*/
+if (RADAR) {
+  // enrich the All-holdings table with momentum ranks (today + Δ vs churn date)
+  const rmap = Object.fromEntries(RADAR.rows.map(r=>[r.t, r]));
+  rows.forEach(r=>{
+    const x = rmap[r.t];
+    if (x && x.rank!=null) {
+      r.rk = x.rank;
+      r.drk = x.rk0!=null ? x.rk0 - x.rank : null;  // positive = climbed since churn
+    }
+  });
+  renderTable();
+  const ST = {
+    held:      {label:'Held — keeps seat',   short:'Held'},
+    buffer:    {label:'Buffer zone (101–'+RADAR.bufEdge+')', short:'Buffer'},
+    atrisk:    {label:'At risk — would drop', short:'At risk'},
+    enter:     {label:'Would enter',          short:'Would enter'},
+    challenger:{label:'Challenger',           short:'Challenger'},
+  };
+  document.getElementById('radar-summary').innerHTML = Object.keys(ST).map(k=>
+    `<span class="chip"><span class="badge st-${k}">${ST[k].short}</span> <b>${RADAR.summary[k]||0}</b></span>`).join('');
+  document.getElementById('radar-note').innerHTML =
+    `<b>How to read this:</b> every S&amp;P 500 name is scored on SPMO's recipe (12-month risk-adjusted momentum) as of ${RADAR.ref}. `+
+    `Current holdings ranked ≤100 keep their seat; ranks 101–${RADAR.bufEdge} survive on the 20% buffer; below ${RADAR.bufEdge} they would be dropped. `+
+    `Open seats go to the best-ranked outsiders (“would enter”); challengers are next in line. Δ rank = places gained/lost (positive = improving). `+
+    `<b>Provisional:</b> the real September churn uses end-August reference data — edge names will change. The engine matched 93–97% of actual selections on the last three churns.`;
+  let rfilter='all';
+  const fdefs=[['all','All'],['atrisk','At risk'],['enter','Would enter'],['buffer','Buffer'],['held','Held'],['challenger','Challengers']];
+  document.getElementById('radar-filters').innerHTML =
+    fdefs.map(([k,l])=>`<button class="fbtn${k==='all'?' on':''}" data-f="${k}">${l}</button>`).join('');
+  function renderRadar(){
+    const d = RADAR.rows.filter(r=>rfilter==='all'||r.st===rfilter)
+      .sort((a,b)=>(a.rank??1e9)-(b.rank??1e9));
+    const dr = x=> x==null ? '<span style="color:var(--muted)">—</span>'
+      : `<span class="${cls(x)}">${x>0?'+':''}${x}</span>`;
+    const w = x=> x==null ? '<span style="color:var(--muted)">—</span>' : fmt(x)+'%';
+    let out=[], seen100=false, seenBuf=false;
+    d.forEach(r=>{
+      if(rfilter==='all'&&!seen100&&(r.rank??1e9)>100){ seen100=true;
+        out.push(`<tr class="divider"><td colspan="8">— rank 100 · selection line —</td></tr>`);}
+      if(rfilter==='all'&&!seenBuf&&(r.rank??1e9)>RADAR.bufEdge){ seenBuf=true;
+        out.push(`<tr class="divider"><td colspan="8">— rank ${RADAR.bufEdge} · buffer edge: a held stock below this line loses its seat —</td></tr>`);}
+      out.push(`<tr><td>${r.rank??'—'}</td><td><b>${r.t}</b></td><td>${r.n}</td>
+        <td style="text-align:left"><span class="badge st-${r.st}">${ST[r.st].short}</span></td>
+        <td>${dr(r.d1w)}</td><td>${dr(r.d1m)}</td><td>${w(r.w0)}</td><td>${w(r.w1)}</td></tr>`);
+    });
+    document.querySelector('#radartable tbody').innerHTML=out.join('');
+  }
+  document.querySelectorAll('#radar-filters .fbtn').forEach(b=>b.onclick=()=>{
+    rfilter=b.dataset.f;
+    document.querySelectorAll('#radar-filters .fbtn').forEach(x=>x.classList.toggle('on',x===b));
+    renderRadar();
+  });
+  renderRadar();
+}
+
+// ---- pie builder ----
+function pieRows(){
+  const n=+document.getElementById('pb-n').value;
+  const mode=document.getElementById('pb-mode').value;
+  const amt=+document.getElementById('pb-amt').value||0;
+  const sel=[...rows].sort((a,b)=>b[mode]-a[mode]).slice(0,n);
+  const cov=sel.reduce((s,r)=>s+r[mode],0);
+  return {sel:sel.map(r=>{
+    const w=r[mode]/cov*100, a=amt*w/100;
+    return {t:r.t,n:r.n,w,a,px:r.px,sh:r.px>0?a/r.px:0};
+  }), cov, n};
+}
+function renderPie(){
+  const {sel,cov,n}=pieRows();
+  document.getElementById('pb-n-label').textContent=n;
+  document.getElementById('pb-cov').textContent='covers '+fmt(cov,1)+'% of SPMO before renormalising';
+  document.querySelector('#pietable tbody').innerHTML=sel.map((r,i)=>`<tr>
+    <td>${i+1}</td><td><b>${r.t}</b></td><td>${r.n}</td>
+    <td>${fmt(r.w)}%</td><td>$${fmt(r.a)}</td><td>$${fmt(r.px)}</td><td>${fmt(r.sh,3)}</td></tr>`).join('');
+}
+function pieCSV(){
+  const {sel}=pieRows();
+  return 'Symbol,Weight %,Amount USD,Est shares\n'+
+    sel.map(r=>`${r.t},${r.w.toFixed(3)},${r.a.toFixed(2)},${r.sh.toFixed(4)}`).join('\n');
+}
+['pb-n','pb-mode','pb-amt'].forEach(id=>document.getElementById(id).oninput=renderPie);
+document.getElementById('pb-copy').onclick=async()=>{
+  await navigator.clipboard.writeText(pieCSV());
+  const f=document.getElementById('pb-flash'); f.textContent='copied ✓';
+  setTimeout(()=>f.textContent='',1800);
+};
+document.getElementById('pb-dl').onclick=()=>{
+  const b=new Blob([pieCSV()],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(b); a.download='spmo_pie_'+DATA.asOf+'.csv'; a.click();
+};
+renderPie();
+</script>
+</body>
+</html>
