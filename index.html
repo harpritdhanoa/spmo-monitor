@@ -110,6 +110,37 @@
 </section>
 
 <section class="card">
+  <h2>SPMO — daily since inception (Oct 2015)</h2>
+  <div class="tvwrap" style="height:540px; border:1px solid var(--border); border-radius:8px; overflow:hidden">
+    <div class="tradingview-widget-container" style="height:100%; width:100%">
+      <div class="tradingview-widget-container__widget" style="height:100%; width:100%"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js" async>
+      {
+        "autosize": true,
+        "symbol": "AMEX:SPMO",
+        "interval": "D",
+        "range": "ALL",
+        "style": "2",
+        "timezone": "Europe/London",
+        "theme": "dark",
+        "locale": "en",
+        "backgroundColor": "rgba(22, 27, 34, 1)",
+        "gridColor": "rgba(43, 52, 66, 0.4)",
+        "withdateranges": true,
+        "allow_symbol_change": false,
+        "details": false,
+        "hide_side_toolbar": false,
+        "save_image": true,
+        "calendar": false,
+        "support_host": "https://www.tradingview.com"
+      }
+      </script>
+    </div>
+  </div>
+  <p class="note" style="margin-top:8px">Full TradingView chart — switch line/candles, add indicators, compare symbols (e.g. against SPY), draw, change ranges, go fullscreen. Churns take effect after the close of the 3rd Friday of March and September.</p>
+</section>
+
+<section class="card">
   <h2>Weight trajectory — top 8 holdings (weekly)</h2>
   <div id="evochart"></div>
 </section>
