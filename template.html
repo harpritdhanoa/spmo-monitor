@@ -88,6 +88,9 @@
 </head>
 <body>
 
+<div id="stale-banner" style="display:none; background:#3a1517; border:1px solid #6e2226; color:#ffb4b0;
+     border-radius:10px; padding:12px 16px; margin-bottom:16px; font-size:13.5px; line-height:1.55"></div>
+
 <header>
   <div>
     <h1>SPMO Drift Monitor</h1>
@@ -257,6 +260,20 @@ const top10then = [...rows].sort((a,b)=>b.w0-a.w0).slice(0,10).reduce((s,r)=>s+r
 
 // ---- header / cycle ----
 document.getElementById('pill-asof').innerHTML = 'Data as of <b>'+DATA.asOf+'</b>';
+// Staleness guard: if the nightly job stops committing, say so loudly on the page
+// itself rather than letting a frozen snapshot masquerade as current data.
+(function(){
+  const days = Math.floor((Date.now() - new Date(DATA.asOf+'T21:00:00Z')) / 864e5);
+  if (days < 5) return;
+  const b = document.getElementById('stale-banner');
+  b.style.display = 'block';
+  b.innerHTML = '<b>⚠ This page is '+days+' days out of date.</b> The nightly update has not '
+    + 'committed since <b>'+DATA.asOf+'</b>, so every weight, rank and pie figure below is a stale '
+    + 'snapshot — not today\'s book. Check the '
+    + '<a href="https://github.com/harpritdhanoa/spmo-monitor/actions" style="color:#ffb4b0">GitHub Actions log</a> '
+    + 'for failing runs.';
+  document.getElementById('pill-asof').innerHTML = 'Data as of <b>'+DATA.asOf+'</b> — STALE';
+})();
 document.getElementById('pill-rebal').textContent = DATA.rebalDate;
 document.getElementById('pill-next').textContent = DATA.nextRebal;
 document.getElementById('note-next').textContent = DATA.nextRebal;

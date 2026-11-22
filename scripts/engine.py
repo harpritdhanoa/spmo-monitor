@@ -34,34 +34,77 @@ def _get(url, ua=UA, timeout=40):
 
 # --------------- UNIVERSE ADAPTER (S&P 500) ---------------
 def sp500_point_in_time(ref_date):
-    """Reconstruct S&P 500 membership as of ref_date by reversing Wikipedia changes."""
-    raw = _get("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies",
-               ua={"User-Agent": "Mozilla/5.0"})
-    t = pd.read_html(io.BytesIO(raw))
-    cur = t[0][["Symbol", "Security", "GICS Sector"]]
+    """Reconstruct S&P 500 membership as of ref_date by reversing Wikipedia changes.
+
+    Current members live on 'List of S&P 500 companies'. The change log used to sit
+    on that same page as table 1, but Wikipedia split it out into its own article
+    ('Historical components of the S&P 500') in Aug 2026 -- hence the two fetches.
+    If the change log cannot be parsed we fall back to the current membership, which
+    is exactly right for ref_date = today and only degrades historical backfills.
+    """
+    WIKI = {"User-Agent": "Mozilla/5.0"}
+    raw = _get("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies", ua=WIKI)
+    cur = pd.read_html(io.BytesIO(raw))[0][["Symbol", "Security", "GICS Sector"]]
     cur.columns = ["Symbol", "Name", "Sector"]
     cur["Symbol"] = cur["Symbol"].str.replace(".", "-", regex=False)
-    chg = t[1]; chg.columns = ["_".join(map(str, c)) if isinstance(c, tuple) else c for c in chg.columns]
-    dcol = [c for c in chg.columns if "Date" in c][0]
-    acol = [c for c in chg.columns if "Added" in c and "Ticker" in c][0]
-    rcol = [c for c in chg.columns if "Removed" in c and "Ticker" in c][0]
+
+    members = set(cur["Symbol"])
+    meta = {r.Symbol: (r.Name, r.Sector) for r in cur.itertuples()}
+    cut = datetime.strptime(ref_date, "%Y-%m-%d")
+
+    chg = None
+    for url in ("https://en.wikipedia.org/wiki/Historical_components_of_the_S%26P_500",
+                "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"):
+        try:
+            for df in pd.read_html(io.BytesIO(_get(url, ua=WIKI))):
+                c = df.copy()
+                c.columns = ["_".join(map(str, x)) if isinstance(x, tuple) else x
+                             for x in c.columns]
+                if (any("Date" in str(x) for x in c.columns)
+                        and any("Added" in str(x) and "Ticker" in str(x) for x in c.columns)
+                        and any("Removed" in str(x) and "Ticker" in str(x) for x in c.columns)):
+                    chg = c
+                    break
+        except Exception:
+            continue
+        if chg is not None:
+            break
+
+    if chg is None:
+        if cut.date() < datetime.now().date():
+            raise RuntimeError(
+                "S&P 500 change log not found on Wikipedia; cannot reconstruct "
+                f"point-in-time membership for {ref_date} without look-ahead bias.")
+        print("WARNING: S&P 500 change log not found; using current membership.")
+        return pd.DataFrame([{"Symbol": m, "Name": meta.get(m, (m, "?"))[0],
+                              "Sector": meta.get(m, (m, "?"))[1]} for m in sorted(members)])
+
+    dcol = [c for c in chg.columns if "Date" in str(c)][0]
+    acol = [c for c in chg.columns if "Added" in str(c) and "Ticker" in str(c)][0]
+    rcol = [c for c in chg.columns if "Removed" in str(c) and "Ticker" in str(c)][0]
+
     def pd_(s):
         for f in ("%B %d, %Y", "%b %d, %Y"):
-            try: return datetime.strptime(str(s).strip(), f)
-            except: pass
+            try:
+                return datetime.strptime(str(s).strip(), f)
+            except Exception:
+                pass
         return None
-    cut = datetime.strptime(ref_date, "%Y-%m-%d")
-    members = set(cur["Symbol"]); meta = {r.Symbol: (r.Name, r.Sector) for r in cur.itertuples()}
-    for r in chg.itertuples(index=False):
-        d = pd_(getattr(r, dcol.replace(" ", "_")) if hasattr(r, dcol.replace(" ", "_")) else r[chg.columns.get_loc(dcol)])
-        d = pd_(r[chg.columns.get_loc(dcol)]) if d is None else d
-        if d is None or d <= cut: continue
-        add = str(r[chg.columns.get_loc(acol)]).replace(".", "-").strip()
-        rem = str(r[chg.columns.get_loc(rcol)]).replace(".", "-").strip()
-        if add and add != "nan": members.discard(add)
-        if rem and rem != "nan": members.add(rem)
+
+    for _, r in chg.iterrows():
+        d = pd_(r[dcol])
+        if d is None or d <= cut:
+            continue
+        add = str(r[acol]).replace(".", "-").strip()
+        rem = str(r[rcol]).replace(".", "-").strip()
+        if add and add.lower() != "nan":
+            members.discard(add)
+        if rem and rem.lower() != "nan":
+            members.add(rem)
+
     return pd.DataFrame([{"Symbol": m, "Name": meta.get(m, (m, "?"))[0],
                           "Sector": meta.get(m, (m, "?"))[1]} for m in sorted(members)])
+
 
 # --------------- PRICES ---------------
 def download_prices(tickers, start, end):
